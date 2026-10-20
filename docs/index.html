@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Облигационер</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a term sheet. Narrow reading column, a yield curve as the hero, sections ruled like a bond prospectus. */
+:root{
+  --bg:#F2F4F6; --paper:#FFFFFF; --ink:#13202E; --muted:#5A6878; --line:#D6DCE3;
+  --accent:#0E7A5C; --accent-soft:#DCEFE8; --amber:#B7790C; --amber-soft:#F6EBD3;
+  --red:#B4372F; --red-soft:#F5DEDB; --term:#0F1923; --term-fg:#CFE3DA;
+  --f-display:"Unbounded","Arial Black",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E151C; --paper:#151F29; --ink:#E4EAF0; --muted:#93A2B2; --line:#26333F;
+  --accent:#3FC79A; --accent-soft:#143429; --amber:#E2A93A; --amber-soft:#33280F;
+  --red:#EC7A6F; --red-soft:#3A1E1B; --term:#0A1016; --term-fg:#BFE0D2; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E151C; --paper:#151F29; --ink:#E4EAF0; --muted:#93A2B2; --line:#26333F;
+  --accent:#3FC79A; --accent-soft:#143429; --amber:#E2A93A; --amber-soft:#33280F;
+  --red:#EC7A6F; --red-soft:#3A1E1B; --term:#0A1016; --term-fg:#BFE0D2; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:400 16px/1.6 var(--f-body);margin:0}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:20px;padding-block:28px 64px;display:flex;flex-direction:column;gap:64px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:clamp(1.9rem,4.6vw,3.3rem);font-weight:700;line-height:1.05;overflow-wrap:anywhere}
+h2{font-size:clamp(1.35rem,3vw,1.9rem);font-weight:500;line-height:1.15}
+h3{font-family:var(--f-body);font-size:1.02rem;font-weight:600;letter-spacing:0}
+p{margin:0;max-width:65ch}
+.eyebrow{font:600 .74rem/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.muted{color:var(--muted)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+section{display:flex;flex-direction:column;gap:22px}
+.head{display:flex;flex-direction:column;gap:10px;border-top:2px solid var(--ink);padding-top:16px}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:36px;align-items:center}
+.hero-copy{display:flex;flex-direction:column;gap:18px;min-width:0}
+.lede{font-size:1.12rem;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:500 .8rem/1 var(--f-mono);padding:7px 10px;border:1px solid var(--line);border-radius:999px;background:var(--paper)}
+.chip b{color:var(--accent);font-weight:600}
+.curve-card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:16px 16px 10px;min-width:0}
+.curve-top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font:500 .78rem/1.3 var(--f-mono);color:var(--muted)}
+.curve-top strong{color:var(--ink);font-weight:600}
+svg{display:block;width:100%;height:auto}
+.axis text{fill:var(--muted);font:11px var(--f-mono)}
+.axis line{stroke:var(--line)}
+.curve-ghost{stroke:var(--line);stroke-width:3;fill:none}
+.curve-live{stroke:var(--accent);stroke-width:3;fill:none;stroke-linecap:round;stroke-dasharray:var(--len);stroke-dashoffset:var(--len);animation:draw 2.4s cubic-bezier(.6,.05,.3,1) .3s forwards}
+.curve-area{fill:var(--accent);opacity:.08}
+.pt{fill:var(--paper);stroke:var(--accent);stroke-width:2}
+.pt-lbl{fill:var(--ink);font:600 10.5px var(--f-mono)}
+.bond-dot{fill:var(--amber)}
+.bond-ring{fill:none;stroke:var(--amber);stroke-width:2;animation:ring 2.2s ease-out infinite;transform-box:fill-box;transform-origin:center}
+.bond-lbl{fill:var(--amber);font:600 10.5px var(--f-mono)}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes ring{0%{transform:scale(.6);opacity:.9}100%{transform:scale(2.6);opacity:0}}
+
+/* disclaimer */
+.disclaimer{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:start;background:var(--amber-soft);border:1px solid var(--amber);border-radius:12px;padding:16px 18px}
+.disclaimer .mark{font:700 1.3rem/1 var(--f-display);color:var(--amber);padding-top:2px}
+.disclaimer p{max-width:none}
+.disclaimer strong{color:var(--ink)}
+
+/* capabilities */
+.caps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.cap{background:var(--paper);padding:20px;display:flex;flex-direction:column;gap:8px;min-width:0;transition:background .2s}
+.cap:hover{background:var(--accent-soft)}
+.cap .k{font:600 .72rem/1 var(--f-mono);color:var(--accent);letter-spacing:.08em;text-transform:uppercase}
+.cap p{font-size:.95rem;color:var(--muted)}
+.cap code{font:500 .78rem var(--f-mono);color:var(--ink);background:var(--bg);padding:1px 5px;border-radius:4px}
+
+/* pipeline */
+.pipe{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;counter-reset:s}
+.pipe li{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px 12px 12px;display:flex;flex-direction:column;gap:6px;min-width:0;animation:stepglow 10s linear infinite;animation-delay:calc(var(--i) * 1s)}
+.pipe li::before{counter-increment:s;content:counter(s,decimal-leading-zero);font:600 .74rem/1 var(--f-mono);color:var(--muted)}
+.pipe li b{font-size:.95rem;line-height:1.25}
+.pipe li span{font-size:.82rem;color:var(--muted);line-height:1.4}
+.pipe li.forum{border-color:var(--amber)}
+@keyframes stepglow{0%,9%{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}10%,100%{box-shadow:0 0 0 0 transparent}}
+
+/* sources hub */
+.hub-wrap{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px;overflow-x:auto}
+.hub-wrap svg{min-width:640px}
+.node rect{fill:var(--bg);stroke:var(--line)}
+.node text{fill:var(--ink);font:500 12px var(--f-body)}
+.node .sub{fill:var(--muted);font:11px var(--f-mono)}
+.node.forum rect{fill:var(--amber-soft);stroke:var(--amber)}
+.core rect{fill:var(--ink)}
+.core text{fill:var(--bg);font:700 15px var(--f-display)}
+.core .sub{fill:var(--bg);opacity:.75;font:11px var(--f-mono)}
+.wire{stroke:var(--line);stroke-width:1.5;fill:none}
+.wire.forum{stroke:var(--amber);stroke-dasharray:4 4}
+.pulse{fill:var(--accent)}
+.pulse.forum{fill:var(--amber)}
+.hub-legend{display:flex;flex-wrap:wrap;gap:16px;font:.8rem var(--f-mono);color:var(--muted);padding:6px 4px 2px}
+.hub-legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+
+/* forum checker */
+.forum-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}
+.checks{display:flex;flex-direction:column;gap:10px}
+.claim{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.claim q{font-weight:500;quotes:"«" "»"}
+.claim .src{grid-column:1;font:.76rem var(--f-mono);color:var(--muted)}
+.stamp{grid-row:1 / span 2;grid-column:2;font:700 .72rem/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;padding:8px 10px;border-radius:6px;border:2px solid currentColor;transform:rotate(-4deg);animation:stamp 9s ease-in-out infinite;animation-delay:calc(var(--i) * 3s)}
+.stamp.ok{color:var(--accent);background:var(--accent-soft)}
+.stamp.no{color:var(--red);background:var(--red-soft)}
+.stamp.unk{color:var(--amber);background:var(--amber-soft)}
+.stamp.op{color:var(--muted);background:var(--bg)}
+@keyframes stamp{0%,4%{transform:rotate(-4deg) scale(1)}6%{transform:rotate(-8deg) scale(1.25)}9%,100%{transform:rotate(-4deg) scale(1)}}
+.rules{display:flex;flex-direction:column;gap:12px;padding:0;margin:0;list-style:none}
+.rules li{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px}
+.rules .n{font:600 .8rem/1.6 var(--f-mono);color:var(--accent)}
+
+/* scoring */
+.score{display:flex;flex-direction:column;gap:10px}
+.bar{display:flex;height:46px;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:var(--paper)}
+.seg{flex:var(--w) 1 0;display:flex;align-items:center;justify-content:center;font:600 .8rem var(--f-mono);color:var(--bg);background:var(--c);border-right:2px solid var(--paper);min-width:0;overflow:hidden;white-space:nowrap;animation:grow 1.4s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i) * .12s)}
+@keyframes grow{from{flex-grow:0;flex-basis:12px}}
+.seg-legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:6px 18px;font-size:.88rem}
+.seg-legend div{display:flex;gap:8px;align-items:baseline}
+.seg-legend i{flex:0 0 10px;height:10px;border-radius:2px;background:var(--c)}
+.seg-legend .mono{margin-left:auto;color:var(--muted)}
+.scale{display:grid;grid-template-columns:35fr 15fr 15fr 15fr 20fr;font:.76rem/1.3 var(--f-mono);border-radius:8px;overflow:hidden}
+.scale div{padding:8px 8px;color:var(--ink);min-width:0}
+.scale small{display:block;color:var(--muted)}
+
+/* terminal */
+.term{background:var(--term);color:var(--term-fg);border-radius:14px;padding:16px 18px;font:13px/1.65 var(--f-mono);overflow-x:auto;min-height:330px;border:1px solid var(--line)}
+.term .bar-dots{display:flex;gap:6px;margin-bottom:12px}
+.term .bar-dots i{width:10px;height:10px;border-radius:50%;background:#33424F}
+.term pre{margin:0;white-space:pre;font:inherit}
+.term .p{color:#7FD8B4}
+.term .h{color:#FFFFFF;font-weight:600}
+.term .y{color:#F1C26B}
+.cursor{display:inline-block;width:8px;height:1.1em;background:var(--term-fg);vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* harnesses */
+.harness{width:100%;border-collapse:collapse;background:var(--paper);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:.93rem}
+.harness th,.harness td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+.harness th{font:600 .74rem var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:var(--bg)}
+.harness tr:last-child td{border-bottom:0}
+.harness code{font:500 .8rem var(--f-mono)}
+.fit{font:600 .74rem var(--f-mono);padding:3px 8px;border-radius:999px;white-space:nowrap}
+.fit.full{background:var(--accent-soft);color:var(--accent)}
+.fit.part{background:var(--amber-soft);color:var(--amber)}
+.tbl{overflow-x:auto}
+
+/* install */
+.install{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.cmd{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.cmd-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.cmd code{display:block;font:500 .82rem/1.5 var(--f-mono);overflow-x:auto;white-space:pre;padding-bottom:2px}
+.copy{font:600 .72rem var(--f-mono);border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;padding:5px 9px;cursor:pointer}
+.copy:hover{border-color:var(--accent);color:var(--accent)}
+
+footer{border-top:1px solid var(--line);padding-top:18px;font-size:.85rem;color:var(--muted);display:flex;flex-direction:column;gap:8px}
+
+@media (max-width:860px){
+  .hero,.forum-grid{grid-template-columns:minmax(0,1fr)}
+  .caps{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pipe{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .install{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:520px){
+  .caps{grid-template-columns:minmax(0,1fr)}
+  .seg{font-size:0}
+  .scale{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .scale div{font-size:.66rem;padding:6px 4px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .curve-live{stroke-dashoffset:0}
+  .pulse{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-copy">
+    <span class="eyebrow">Агент · навык Agent Skills · открытый</span>
+    <h1>Облигационер</h1>
+    <p class="lede">ИИ-аналитик облигаций российского рынка. Берёт живые данные Мосбиржи и ФНС, читает свежую отчётность эмитентов, проверяет слухи с форумов и отвечает как кредитный аналитик: вернут ли деньги и достаточно ли за это платят.</p>
+    <div class="chips" aria-label="Совместимые среды">
+      <span class="chip"><b>●</b> Hermes Agent</span>
+      <span class="chip"><b>●</b> Claude Code</span>
+      <span class="chip"><b>●</b> Claude Agent SDK</span>
+      <span class="chip"><b>●</b> Codex CLI</span>
+      <span class="chip">◐ claude.ai</span>
+    </div>
+  </div>
+  <figure class="curve-card" style="margin:0">
+    <div class="curve-top">
+      <span><strong>Кривая ОФЗ (КБД)</strong> · MOEX ISS, 19.10.2026, 18:55</span>
+      <span>доходность, % годовых</span>
+    </div>
+    <svg id="curve" viewBox="0 0 520 290" role="img" aria-label="Кривая бескупонной доходности ОФЗ: от 12,26% на сроке 3 месяца до 16,48% на 7 лет и 16,40% на 20 лет. Отмечена ОФЗ 26238 с доходностью 16,26%."></svg>
+    <figcaption class="curve-top" style="padding-top:4px"><span>Пример того, что агент получает одной командой <span class="mono">macro.py</span></span></figcaption>
+  </figure>
+</header>
+
+<aside class="disclaimer" role="note" aria-label="Оговорка">
+  <span class="mark">!</span>
+  <p><strong>Не является финансовой или инвестиционной рекомендацией.</strong> Агент выдаёт аналитику и образовательную информацию, а не индивидуальную инвестиционную рекомендацию. Решения о покупке и продаже ценных бумаг вы принимаете сами и сами за них отвечаете. Языковая модель может ошибаться и неверно понять данные: ключевые цифры проверяйте по первоисточникам. Агент не совершает сделок и не запрашивает доступ к брокерскому счёту.</p>
+</aside>
+
+<!-- CAPABILITIES -->
+<section>
+  <div class="head">
+    <span class="eyebrow">Что умеет</span>
+    <h2>Шесть задач, с которыми к нему приходят</h2>
+  </div>
+  <div class="caps">
+    <div class="cap"><span class="k">Разбор выпуска</span><h3>Карточка облигации за секунды</h3><p>Купоны, амортизация, оферты, база флоатера, НКД, доходность, дюрация, G- и Z-спред, ликвидность. Плюс собственный пересчёт и доходность за год при сдвиге ставок на ±300 б.п. <code>moex_bond.py</code></p></div>
+    <div class="cap"><span class="k">Скрининг</span><h3>Весь рынок, около 3000 бумаг</h3><p>Фильтры по доходности, дюрации, обороту, листингу, типу купона и валюте. Отсекает структурные, неликвидные и предефолтные бумаги. <code>screener.py</code></p></div>
+    <div class="cap"><span class="k">Отчётность</span><h3>Читает свежие отчёты</h3><p>РСБУ из ГИР БО ФНС за все годы, МСФО и отчёты эмитента в PDF: долг, проценты, ковенанты, мнение аудитора, связанные стороны. <code>gir_bo.py</code> <code>report_extract.py</code></p></div>
+    <div class="cap"><span class="k">Кредитный риск</span><h3>Скоринг эмитента 0–100</h3><p>Нагрузка, покрытие процентов, ликвидность и стена рефинансирования, корпоративное управление, рейтинги, структура выпуска. Красные флаги по каждой отрасли.</p></div>
+    <div class="cap"><span class="k">Форумы</span><h3>Слухи под проверкой</h3><p>Smart-Lab, Пульс, Telegram, banki.ru. Каждое утверждение сверяет с судом, раскрытием, ЦБ или отчётностью и ставит статус.</p></div>
+    <div class="cap"><span class="k">Ставка и ОФЗ</span><h3>Сценарии по ключевой ставке</h3><p>Форма кривой, аукционы Минфина, консенсус ЦБ. Что выгоднее сейчас: длинные ОФЗ, флоатеры или линкеры. <code>macro.py</code> <code>bond_math.py</code></p></div>
+  </div>
+</section>
+
+<!-- PIPELINE -->
+<section>
+  <div class="head">
+    <span class="eyebrow">Как он думает</span>
+    <h2>Десять шагов разбора одной облигации</h2>
+    <p class="muted">Порядок зашит в навык. Агент не пропускает шаги и к каждой цифре указывает источник и дату.</p>
+  </div>
+  <ol class="pipe">
+    <li style="--i:0"><b>Рынок</b><span>ключевая ставка, кривая ОФЗ, инфляция</span></li>
+    <li style="--i:1"><b>Карточка</b><span>купоны, оферты, спред, ликвидность</span></li>
+    <li style="--i:2"><b>Эмитент</b><span>РСБУ, МСФО группы, отраслевые метрики</span></li>
+    <li style="--i:3"><b>События</b><span>существенные факты, рейтинги, суды</span></li>
+    <li style="--i:4" class="forum"><b>Форумы</b><span>гипотезы и их проверка</span></li>
+    <li style="--i:5"><b>Свежий отчёт</b><span>читает PDF, сам пересчитывает метрики</span></li>
+    <li style="--i:6"><b>Структура</b><span>субординация, поручители, ковенанты</span></li>
+    <li style="--i:7"><b>Сравнение</b><span>другие выпуски и аналоги по рейтингу</span></li>
+    <li style="--i:8"><b>Сценарии</b><span>ставка, спред, дефолт, НДФЛ</span></li>
+    <li style="--i:9"><b>Вывод</b><span>скоринг, риски, для кого подходит</span></li>
+  </ol>
+</section>
+
+<!-- SOURCES -->
+<section>
+  <div class="head">
+    <span class="eyebrow">Где он берёт данные</span>
+    <h2>Первоисточники в приоритете, форумы как сигнал</h2>
+  </div>
+  <div class="hub-wrap">
+    <svg id="hub" viewBox="0 0 900 400" role="img" aria-label="Схема источников данных: Мосбиржа, Банк России, ФНС, раскрытие эмитентов, рейтинговые агентства, суды и Федресурс, Минфин, новости и форумы сходятся в агенте."></svg>
+    <div class="hub-legend"><span><i style="background:var(--accent)"></i>первоисточник: данные идут в вывод</span><span><i style="background:var(--amber)"></i>форумы: только после проверки</span></div>
+  </div>
+</section>
+
+<!-- FORUMS -->
+<section>
+  <div class="head">
+    <span class="eyebrow">Форумы</span>
+    <h2>Слушает сообщество, но верит документам</h2>
+  </div>
+  <div class="forum-grid">
+    <div class="checks" aria-label="Пример проверки утверждений с форумов">
+      <div class="claim"><q>У эмитента иск от банка на 250 млн</q><span class="src">Smart-Lab → kad.arbitr.ru, дело найдено</span><span class="stamp ok" style="--i:0">✓ подтверждено</span></div>
+      <div class="claim"><q>Купон задержат</q><span class="src">Пульс → e-disclosure: фактов нет, выплата по графику</span><span class="stamp no" style="--i:1">✕ опровергнуто</span></div>
+      <div class="claim"><q>Владелец выводит деньги займами</q><span class="src">Telegram → МСФО: займы связанным выросли, цель не раскрыта</span><span class="stamp unk" style="--i:2">? не проверено</span></div>
+      <div class="claim"><q>Бумага улетит к номиналу</q><span class="src">Пульс → прогноз, проверить нельзя</span><span class="stamp op" style="--i:3">мнение</span></div>
+      <p class="muted" style="font-size:.8rem">Пример формата. Утверждения условные.</p>
+    </div>
+    <ol class="rules">
+      <li><span class="n">01</span><span>Собирает свежие обсуждения за 1–3 месяца и отмечает, кто пишет: аноним, аналитик, представитель эмитента, организатор выпуска.</span></li>
+      <li><span class="n">02</span><span>Отбрасывает эмоции и вытаскивает конкретные утверждения, которые можно проверить.</span></li>
+      <li><span class="n">03</span><span>Сверяет каждое с первоисточником: арбитраж, Федресурс, налоговая, раскрытие эмитента, отчётность, история торгов.</span></li>
+      <li><span class="n">04</span><span>Сравнивает настроение на форуме с ценой и спредом. Паника при стабильной цене обычно шум. Тишина при расширении спреда настораживает.</span></li>
+      <li><span class="n">05</span><span>В вывод как факт идёт только подтверждённое. Остальное попадает в отдельный блок с пометкой.</span></li>
+    </ol>
+  </div>
+</section>
+
+<!-- SCORING -->
+<section>
+  <div class="head">
+    <span class="eyebrow">Скоринг эмитента</span>
+    <h2>Из чего складываются 100 баллов</h2>
+  </div>
+  <div class="score">
+    <div class="bar" role="img" aria-label="Веса блоков скоринга: бизнес 15, нагрузка 20, покрытие 20, ликвидность 20, управление 10, сигналы 10, структура 5.">
+      <span class="seg" style="--w:15;--c:#2F6F8F;--i:0">15</span>
+      <span class="seg" style="--w:20;--c:#0E7A5C;--i:1">20</span>
+      <span class="seg" style="--w:20;--c:#3E9A6E;--i:2">20</span>
+      <span class="seg" style="--w:20;--c:#6E8F3A;--i:3">20</span>
+      <span class="seg" style="--w:10;--c:#B7790C;--i:4">10</span>
+      <span class="seg" style="--w:10;--c:#A65A2B;--i:5">10</span>
+      <span class="seg" style="--w:5;--c:#7A4C7E;--i:6">5</span>
+    </div>
+    <div class="seg-legend">
+      <div><i style="--c:#2F6F8F"></i>Бизнес и отрасль<span class="mono">15</span></div>
+      <div><i style="--c:#0E7A5C"></i>Долговая нагрузка<span class="mono">20</span></div>
+      <div><i style="--c:#3E9A6E"></i>Покрытие и денежный поток<span class="mono">20</span></div>
+      <div><i style="--c:#6E8F3A"></i>Ликвидность и рефинансирование<span class="mono">20</span></div>
+      <div><i style="--c:#B7790C"></i>Управление и раскрытие<span class="mono">10</span></div>
+      <div><i style="--c:#A65A2B"></i>Рейтинг и внешние сигналы<span class="mono">10</span></div>
+      <div><i style="--c:#7A4C7E"></i>Структура выпуска<span class="mono">5</span></div>
+    </div>
+    <div class="scale" aria-label="Шкала классов риска">
+      <div style="background:var(--red-soft)">0–34<small>высокий риск дефолта</small></div>
+      <div style="background:var(--amber-soft)">35–49<small>спекулятивный</small></div>
+      <div style="background:var(--bg)">50–64<small>повышенный</small></div>
+      <div style="background:var(--accent-soft)">65–79<small>умеренный</small></div>
+      <div style="background:var(--accent-soft)"><b>80–100</b><small>надёжно</small></div>
+    </div>
+  </div>
+</section>
+
+<!-- TERMINAL -->
+<section>
+  <div class="head">
+    <span class="eyebrow">Живые данные</span>
+    <h2>Так выглядит одна команда агента</h2>
+    <p class="muted">Реальный вывод скрипта на данных MOEX от 19–20.10.2026, сокращён.</p>
+  </div>
+  <div class="term" aria-label="Пример вывода скрипта moex_bond.py">
+    <div class="bar-dots"><i></i><i></i><i></i></div>
+    <pre id="termOut"></pre>
+  </div>
+</section>
+
+<!-- HARNESSES -->
+<section>
+  <div class="head">
+    <span class="eyebrow">Совместимость</span>
+    <h2>Работает в популярных агентных средах</h2>
+    <p class="muted">Навык сделан по открытому стандарту Agent Skills: одна папка с файлом SKILL.md, справочниками и скриптами. Скрипты написаны на Python без сторонних зависимостей (для PDF нужен pypdf).</p>
+  </div>
+  <div class="tbl">
+  <table class="harness">
+    <thead><tr><th>Среда</th><th>Как подключить</th><th>Поддержка</th></tr></thead>
+    <tbody>
+      <tr><td><b>Hermes Agent</b><br><span class="muted">Linux, macOS, WSL2</span></td><td>отдельный профиль <code>bonds</code> с характером из SOUL.md или навык в основном профиле</td><td><span class="fit full">полная</span></td></tr>
+      <tr><td><b>Claude Code</b><br><span class="muted">терминал, десктоп, IDE</span></td><td>навык <code>ru-bonds</code> и субагент <code>bonds</code>, установщик для Windows и Unix</td><td><span class="fit full">полная</span></td></tr>
+      <tr><td><b>Claude Agent SDK</b></td><td>папка навыка в <code>.claude/skills/</code> вашего проекта</td><td><span class="fit full">полная</span></td></tr>
+      <tr><td><b>Codex CLI</b></td><td>навык в каталоге навыков Codex или <code>AGENTS.md</code> в корне папки</td><td><span class="fit full">полная</span></td></tr>
+      <tr><td><b>claude.ai</b><br><span class="muted">сайт и приложение</span></td><td>zip-архив навыка в настройках, раздел Skills</td><td><span class="fit part">частичная</span><br><span class="muted" style="font-size:.8rem">из песочницы скрипты могут не достучаться до MOEX и ФНС, тогда агент использует веб-поиск</span></td></tr>
+      <tr><td><b>Другие среды</b><br><span class="muted">с поддержкой SKILL.md или AGENTS.md</span></td><td>скопировать папку навыка в каталог навыков среды</td><td><span class="fit part">зависит от среды</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- INSTALL -->
+<section>
+  <div class="head">
+    <span class="eyebrow">Установка</span>
+    <h2>Одна команда для каждой среды</h2>
+  </div>
+  <div class="install">
+    <div class="cmd"><div class="cmd-top"><b>Hermes Agent</b><button class="copy" id="c1" type="button">Копировать</button></div><code>./install.sh            # профиль bonds → bonds chat</code></div>
+    <div class="cmd"><div class="cmd-top"><b>Claude Code · macOS, Linux</b><button class="copy" id="c2" type="button">Копировать</button></div><code>./install.sh claude</code></div>
+    <div class="cmd"><div class="cmd-top"><b>Claude Code · Windows</b><button class="copy" id="c3" type="button">Копировать</button></div><code>powershell -ExecutionPolicy Bypass -File install.ps1 claude</code></div>
+    <div class="cmd"><div class="cmd-top"><b>Codex CLI</b><button class="copy" id="c4" type="button">Копировать</button></div><code>./install.sh codex</code></div>
+  </div>
+  <p class="muted">Примеры запросов: «Разбери RU000A10DK98, держать до оферты?», «Подбери 10 облигаций с ежемесячным купоном от 18% до 2 лет без ВДО», «Прочитай свежую МСФО эмитента и скажи, что изменилось для держателей облигаций», «Что пишут на форумах про эмитента? Проверь, что правда».</p>
+</section>
+
+<footer>
+  <span><b>Облигационер</b> · навык <span class="mono">ru-bonds</span> v1.0 · данные: MOEX ISS, ГИР БО ФНС, Банк России, e-disclosure.ru, рейтинговые агентства АКРА, Эксперт РА, НКР, НРА.</span>
+  <span>Не является индивидуальной инвестиционной рекомендацией и финансовым советом. Прошлая доходность не гарантирует будущую. Инвестиции в облигации связаны с риском потери части или всех вложенных средств, включая риск дефолта эмитента.</span>
+</footer>
+</div>
+
+<script>
+(function(){
+  const NS="http://www.w3.org/2000/svg";
+  const el=(n,a,p)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e};
+
+  /* ---------- Yield curve (real MOEX ZCYC data, 19.10.2026) ---------- */
+  const pts=[[0.25,12.26],[0.5,12.88],[0.75,13.41],[1,13.86],[2,15.14],[3,15.84],[5,16.37],[7,16.48],[10,16.47],[15,16.43],[20,16.40]];
+  const svg=document.getElementById("curve");
+  const L=44,R=500,T=18,B=250, yMin=11.5,yMax=17.5;
+  const x=t=>L+(Math.sqrt(t)/Math.sqrt(20))*(R-L);
+  const y=v=>B-(v-yMin)/(yMax-yMin)*(B-T);
+  const ax=el("g",{class:"axis"},svg);
+  [12,13,14,15,16,17].forEach(v=>{el("line",{x1:L,x2:R,y1:y(v),y2:y(v)},ax);const t=el("text",{x:L-8,y:y(v)+4,"text-anchor":"end"},ax);t.textContent=v});
+  [[0.25,"3м"],[1,"1г"],[2,"2"],[3,"3"],[5,"5"],[10,"10"],[20,"20 лет"]].forEach(([t,l])=>{const e=el("text",{x:x(t),y:B+20,"text-anchor":"middle"},ax);e.textContent=l});
+  const d=pts.map((p,i)=>(i?"L":"M")+x(p[0]).toFixed(1)+" "+y(p[1]).toFixed(1)).join(" ");
+  el("path",{d:d+` L${x(20)} ${B} L${x(0.25)} ${B} Z`,class:"curve-area"},svg);
+  el("path",{d,class:"curve-ghost"},svg);
+  const live=el("path",{d,class:"curve-live"},svg);
+  const len=live.getTotalLength();live.style.setProperty("--len",len);
+  pts.forEach(p=>el("circle",{cx:x(p[0]),cy:y(p[1]),r:3.2,class:"pt"},svg));
+  const l1=el("text",{x:x(0.25)+6,y:y(12.26)+16,class:"pt-lbl"},svg);l1.textContent="12,26%";
+  const l2=el("text",{x:x(7),y:y(16.48)-12,class:"pt-lbl","text-anchor":"middle"},svg);l2.textContent="16,48%";
+  // OFZ 26238: YTM 16.26%, duration 2472 days ≈ 6.77y
+  const bx=x(6.77),by=y(16.26);
+  el("circle",{cx:bx,cy:by,r:5,class:"bond-ring"},svg);
+  el("circle",{cx:bx,cy:by,r:4.5,class:"bond-dot"},svg);
+  const bl=el("text",{x:bx+8,y:by+20,class:"bond-lbl"},svg);bl.textContent="ОФЗ 26238 · 16,26%";
+
+  /* ---------- Sources hub ---------- */
+  const hub=document.getElementById("hub");
+  const nodes=[
+    ["Мосбиржа · ISS API","цены, купоны, спреды",30,20,false],
+    ["Банк России","ставка, RUONIA, банки",30,110,false],
+    ["ГИР БО ФНС","РСБУ эмитентов",30,200,false],
+    ["Раскрытие эмитента","e-disclosure, МСФО",30,290,false],
+    ["Рейтинговые агентства","АКРА, Эксперт РА, НКР, НРА",640,20,false],
+    ["Суды и Федресурс","kad.arbitr, банкротства",640,110,false],
+    ["Минфин и новости","аукционы ОФЗ, Интерфакс",640,200,false],
+    ["Форумы и Telegram","Smart-Lab, Пульс",640,290,true],
+  ];
+  const W=230,H=58, cx=450, cy=200;
+  const wires=el("g",{},hub), dots=el("g",{},hub), boxes=el("g",{},hub);
+  nodes.forEach((n,i)=>{
+    const [t,s,nx,ny,forum]=n;
+    const left=nx<cx; const sx=left?nx+W:nx, sy=ny+H/2;
+    const ex=left?cx-95:cx+95;
+    const dd=`M${sx} ${sy} C ${(sx+ex)/2} ${sy}, ${(sx+ex)/2} ${cy}, ${ex} ${cy}`;
+    const w=el("path",{d:dd,class:"wire"+(forum?" forum":""),id:"w"+i},wires);
+    const c=el("circle",{r:forum?4:3.5,class:"pulse"+(forum?" forum":"")},dots);
+    const m=el("animateMotion",{dur:(forum?4.2:2.6+(i%4)*0.35)+"s",repeatCount:"indefinite",begin:(i*0.3)+"s"},c);
+    el("mpath",{href:"#w"+i},m);
+    const g=el("g",{class:"node"+(forum?" forum":"")},boxes);
+    el("rect",{x:nx,y:ny,width:W,height:H,rx:9},g);
+    const a=el("text",{x:nx+14,y:ny+25},g);a.textContent=t;
+    const b=el("text",{x:nx+14,y:ny+44,class:"sub"},g);b.textContent=s;
+  });
+  const core=el("g",{class:"core"},hub);
+  el("rect",{x:cx-95,y:cy-48,width:190,height:96,rx:14},core);
+  const c1=el("text",{x:cx,y:cy-4,"text-anchor":"middle"},core);c1.textContent="Облигационер";
+  const c2=el("text",{x:cx,y:cy+20,"text-anchor":"middle",class:"sub"},core);c2.textContent="проверка → анализ → вывод";
+
+  /* ---------- Terminal typing loop ---------- */
+  const lines=[
+    ['p','$ python moex_bond.py SU26238RMFS4'],
+    ['h','=== ОФЗ-ПД 26238 15/05/2041 | ISIN RU000A1038V6 ==='],
+    ['','Режим: TQOB · фиксированный купон · листинг 1'],
+    ['','Цена 51,441% · оборот 1,11 млрд ₽ · сделок 35 107'],
+    ['','Купон 7,1% = 35,40 ₽ каждые 182 дн. · след. 02.12.2026'],
+    ['y','MOEX: YTM 16,26% к 15.05.2041 · дюрация 2472 дн. · G-спред −22 б.п.'],
+    ['','КБД на сроке дюрации: 16,46%'],
+    ['','Свой расчёт: дюрация мод. 5,83 · выпуклость 59,3'],
+    ['y','Доходность за год при сдвиге ставок:'],
+    ['','  −200 б.п. → +29,2%   −100 → +22,4%   0 → +16,3%'],
+    ['','  +100 б.п. → +10,7%   +200 → +5,6%    +300 → +1,0%'],
+    ['p','$ python gir_bo.py 7736050003'],
+    ['h','=== ПАО "ГАЗПРОМ" · РСБУ 2025 ==='],
+    ['','ICR (EBIT/проценты): 0,24 · текущая ликвидность 0,82 · доля краткосрочного долга 35,6%'],
+  ];
+  const out=document.getElementById("termOut");
+  const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+  const render=(n,partial)=>{let h="";for(let i=0;i<n;i++)h+=`<span class="${lines[i][0]}">${esc(lines[i][1])}</span>\n`;if(partial!=null)h+=`<span class="${lines[n][0]}">${esc(partial)}</span>`;out.innerHTML=h+'<span class="cursor"></span>'};
+  if(reduce){render(lines.length);}
+  else{
+    render(lines.length); // full frame first: page is complete at rest
+    let li=0,ci=0;
+    setTimeout(function tick(){
+      if(li>=lines.length){setTimeout(()=>{li=0;ci=0;tick()},5000);return}
+      const s=lines[li][1];
+      if(lines[li][0]==='p'&&ci<s.length){ci+=1;render(li,s.slice(0,ci));setTimeout(tick,38);return}
+      li++;ci=0;render(li);setTimeout(tick,lines[li-1][0]==='p'?450:140);
+    },3500);
+  }
+
+  /* ---------- Copy buttons ---------- */
+  document.querySelectorAll(".copy").forEach(b=>b.addEventListener("click",()=>{
+    const code=b.closest(".cmd").querySelector("code");
+    const text=code.textContent.replace(/\s+#.*$/,"").trim();
+    const done=()=>{b.textContent="Скопировано";setTimeout(()=>b.textContent="Копировать",1600)};
+    const fallback=()=>{const r=document.createRange();r.selectNodeContents(code);const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent="Выделено, Ctrl+C";setTimeout(()=>b.textContent="Копировать",2000)};
+    try{navigator.clipboard.writeText(text).then(done,fallback)}catch(e){fallback()}
+  }));
+})();
+</script>
+</body>
+</html>
