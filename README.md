@@ -1,5 +1,7 @@
 # Облигационер — агент-аналитик облигаций РФ
 
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/ildargiv/ru-bonds-agent/blob/main/LICENSE) ![Agent Skills](https://img.shields.io/badge/Agent%20Skills-SKILL.md-0E7A5C)
+
 [Презентация агента](https://ildargiv.github.io/ru-bonds-agent/) · навык по стандарту Agent Skills · Hermes Agent, Claude Code, Codex CLI
 
 Аналитик облигаций российского рынка: живые данные MOEX, РСБУ из ФНС, чтение свежей отчётности, кредитный скоринг, сценарии по ключевой ставке, скрининг, форумы с проверкой фактов.
