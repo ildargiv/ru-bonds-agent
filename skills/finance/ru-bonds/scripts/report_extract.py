@@ -5,6 +5,7 @@
   python report_extract.py https://example.ru/ifrs_2026_h1.pdf
   python report_extract.py report.pdf --dump report.txt     # весь текст в файл для чтения
   python report_extract.py report.pdf --grep "ковенант|оферт|реструктур"
+  python report_extract.py <URL> --save RU000A10XXXX --name 2026-h1-ifrs   # архив в папку выпуска + заметка
 
 Нужен один из: `pip install pypdf` (предпочтительно) или утилита pdftotext (poppler-utils).
 """
@@ -73,8 +74,25 @@ def main():
     ap.add_argument("--grep", help="Свой regex вместо стандартного набора")
     ap.add_argument("--dump", help="Сохранить полный текст в файл")
     ap.add_argument("--max", type=int, default=6, help="Совпадений на показатель")
+    ap.add_argument("--save", metavar="SECID", help="Сохранить PDF и текст в папку выпуска (reports/) + заметку-конспект")
+    ap.add_argument("--name", help="Имя в архиве, напр. 2026-h1-ifrs (по умолчанию из URL)")
     a = ap.parse_args()
-    pages = pdf_text(fetch(a.src))
+    path = fetch(a.src)
+    pages = pdf_text(path)
+    if a.save:
+        import datetime as _dt
+        from _iss import ticker_dir, append_journal
+        sid = a.save.strip().upper()
+        rdir = ticker_dir(sid, "reports")
+        base = re.sub(r"[^\w.-]+", "_", a.name or os.path.splitext(os.path.basename(a.src.split("?")[0]))[0])
+        shutil.copyfile(path, os.path.join(rdir, base + ".pdf"))
+        a.dump = a.dump or os.path.join(rdir, base + ".txt")
+        with open(os.path.join(rdir, "index.md"), "a", encoding="utf-8") as f:
+            f.write(f"- {_dt.date.today().isoformat()} | {base} | {len(pages)} стр. | {a.src}\n")
+        append_journal(sid, f"Отчёт добавлен в архив: {base}", a.src)
+        import wiki
+        wiki.safe_sync([sid])
+        print(f"Архив: {os.path.join(rdir, base)}.pdf/.txt; заметка для конспекта: {os.path.join(rdir, base)}.md")
     print(f"Страниц: {len(pages)}; символов: {sum(len(t) for _, t in pages)}")
     if sum(len(t) for _, t in pages) < 30 * len(pages):
         print("Похоже на скан без текстового слоя — нужен OCR (ocrmypdf) или читайте как изображения.")

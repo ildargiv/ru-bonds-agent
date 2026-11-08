@@ -24,3 +24,4 @@ if ($Target -eq "claude") {
     Write-Host "Перезапустите сессию Codex."
 }
 try { python -m pip install --user --quiet pypdf } catch { Write-Host "Для чтения PDF: pip install pypdf" }
+try { python (Join-Path $Src "scripts\wiki.py") init | Out-Null; Write-Host "База знаний Obsidian: откройте папку bonds-desk в Obsidian" } catch { Write-Host "База знаний: python wiki.py init" }
