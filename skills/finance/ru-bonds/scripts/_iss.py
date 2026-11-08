@@ -1,5 +1,8 @@
-"""Общие помощники для MOEX ISS API (iss.moex.com). Только стандартная библиотека."""
+"""Общие помощники: MOEX ISS API (iss.moex.com) и хранилище выпусков («рабочий стол»). Только стандартная библиотека."""
+import datetime as _dt
 import json
+import os
+import re
 import sys
 import urllib.parse
 import urllib.request
@@ -88,3 +91,52 @@ def date(x):
         return _dt.date.fromisoformat(str(x)[:10])
     except (TypeError, ValueError):
         return None
+
+
+def today():
+    return _dt.date.today().isoformat()
+
+
+# ---------- Хранилище выпусков (база знаний Obsidian, references/desk-structure.md) ----------
+def desk_root():
+    """Корень: BONDS_DESK, иначе INVEST_VAULT/bonds (общее Obsidian-хранилище агентов), иначе ~/bonds-desk."""
+    vault = os.environ.get("INVEST_VAULT")
+    root = os.environ.get("BONDS_DESK") or (os.path.join(vault, "bonds") if vault else
+                                             os.path.join(os.path.expanduser("~"), "bonds-desk"))
+    root = os.path.expanduser(root)
+    m = re.match(r"^/([a-zA-Z])/(.*)$", root.replace("\\", "/"))  # Git-Bash: /c/Users/... -> C:/Users/...
+    if os.name == "nt" and m:
+        root = f"{m.group(1).upper()}:/{m.group(2)}"
+    os.makedirs(root, exist_ok=True)
+    return root
+
+
+def load_watchlist():
+    p = os.path.join(desk_root(), "watchlist.json")
+    if not os.path.exists(p):
+        return {"tickers": {}}
+    with open(p, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def save_watchlist(wl):
+    p = os.path.join(desk_root(), "watchlist.json")
+    with open(p + ".tmp", "w", encoding="utf-8") as f:
+        json.dump(wl, f, ensure_ascii=False, indent=1)
+    os.replace(p + ".tmp", p)
+
+
+def ticker_dir(secid, sub=None, create=True):
+    """Папка выпуска (SECID, у корпоративных он совпадает с ISIN)."""
+    d = os.path.join(desk_root(), secid.strip())
+    if sub:
+        d = os.path.join(d, sub)
+    if create:
+        os.makedirs(d, exist_ok=True)
+    return d
+
+
+def append_journal(secid, text, source=""):
+    p = os.path.join(ticker_dir(secid), "journal.md")
+    with open(p, "a", encoding="utf-8") as f:
+        f.write(f"- {today()} — {text}" + (f" ({source})" if source else "") + "\n")

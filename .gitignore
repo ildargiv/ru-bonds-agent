@@ -3,3 +3,7 @@ __pycache__/
 publish/
 *.csv
 .DS_Store
+# хранилище выпусков (личные данные) не коммитим
+bonds-desk/
+invest-vault/
+.obsidian/

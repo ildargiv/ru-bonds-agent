@@ -4,6 +4,7 @@
   python moex_bond.py RU000A10XXXX            # по ISIN
   python moex_bond.py SU26238RMFS4            # по SECID
   python moex_bond.py SU26238RMFS4 --json     # машиночитаемый вывод
+  python moex_bond.py RU000A10XXXX --save     # + снимок цены/YTM/спреда в папку выпуска (desk.py add)
 """
 import argparse
 import datetime as dt
@@ -70,12 +71,9 @@ def build_flows(coupons, amorts, today, until=None):
     return sorted(flows.items())
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("query", help="ISIN, SECID или часть названия")
-    ap.add_argument("--json", action="store_true")
-    a = ap.parse_args()
-    secid, desc, sec, mkt, yld, coupons, amorts, offers = collect(a.query)
+def card(query):
+    """Полная карточка выпуска как dict (то же, что печатает main/--json)."""
+    secid, desc, sec, mkt, yld, coupons, amorts, offers = collect(query)
     today = dt.date.today()
 
     price = num(mkt.get("LAST")) or num(mkt.get("WAPRICE")) or num(sec.get("PREVWAPRICE")) or num(sec.get("PREVPRICE"))
@@ -150,6 +148,39 @@ def main():
             "e_disclosure_search": "https://www.e-disclosure.ru/poisk-po-kompaniyam",
         },
     }
+    return out
+
+
+def save_snapshot(out):
+    """Снимок цены/доходности в папку выпуска (если он под наблюдением): market/snapshots.jsonl."""
+    from _iss import load_watchlist, ticker_dir, today as _today
+    secid = out["secid"]
+    if secid not in load_watchlist()["tickers"]:
+        print(f"⚠ {secid} не под наблюдением — снимок не сохранён (python desk.py add {secid})", file=sys.stderr)
+        return None
+    m, y = out["market"], out["moex_yields"]
+    rec = {"date": _today(), "price_%": m["price_%"], "ytm_%": y["effective_yield_%"], "yield_date": y["yield_date"],
+           "duration_days": y["duration_days"], "g_spread_bp": y["g_spread_bp"], "z_spread_bp": y["z_spread_bp"],
+           "kbd_%": out["kbd_yield_at_duration_%"], "volume_rub": m["volume_today_rub"], "nkd": m["nkd"],
+           "coupon_%": m["coupon_%"]}
+    p = os.path.join(ticker_dir(secid, "market"), "snapshots.jsonl")
+    with open(p, "a", encoding="utf-8") as f:
+        f.write(json.dumps(rec, ensure_ascii=False, default=str) + "\n")
+    return p
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("query", help="ISIN, SECID или часть названия")
+    ap.add_argument("--json", action="store_true")
+    ap.add_argument("--save", action="store_true", help="дописать снимок в папку выпуска (market/snapshots.jsonl)")
+    a = ap.parse_args()
+    out = card(a.query)
+    secid, own = out["secid"], out["own_calc"]
+    if a.save:
+        p = save_snapshot(out)
+        if p:
+            print(f"Снимок сохранён: {p}", file=sys.stderr)
     if a.json:
         print(json.dumps(out, ensure_ascii=False, indent=1, default=str))
         return

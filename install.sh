@@ -62,5 +62,6 @@ case "$TARGET" in
 esac
 
 python3 -m pip install --user --quiet pypdf 2>/dev/null || echo "pypdf не установлен — для чтения PDF: pip install pypdf"
+python3 "$SKILL_SRC/scripts/wiki.py" init >/dev/null 2>&1 && echo "База знаний Obsidian: ${BONDS_DESK:-$HOME/bonds-desk} (откройте в Obsidian как хранилище)" || true
 echo "Проверка доступа к MOEX..."
 python3 "$SKILL_SRC/scripts/macro.py" | head -3 || echo "MOEX ISS недоступен — проверьте сеть"
