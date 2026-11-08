@@ -1,8 +1,10 @@
-# Облигационер — агент-аналитик облигаций РФ
+# Облигационер — ИИ-агент для анализа облигаций РФ (MOEX, ОФЗ)
 
-[![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/ildargiv/ru-bonds-agent/blob/main/LICENSE) ![Agent Skills](https://img.shields.io/badge/Agent%20Skills-SKILL.md-0E7A5C)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) ![Agent Skills](https://img.shields.io/badge/Agent%20Skills-SKILL.md-0E7A5C) ![Python](https://img.shields.io/badge/python-3.9%2B-3776AB?logo=python&logoColor=white) ![Hermes Agent](https://img.shields.io/badge/Hermes%20Agent-ready-555) ![Claude Code](https://img.shields.io/badge/Claude%20Code-ready-D97757) ![Codex CLI](https://img.shields.io/badge/Codex%20CLI-ready-555)
 
-[Презентация агента](https://ildargiv.github.io/ru-bonds-agent/) · навык по стандарту Agent Skills · Hermes Agent, Claude Code, Codex CLI
+**Открытый ИИ-агент-аналитик облигаций** для Hermes Agent, Claude Code и Codex CLI: ОФЗ и корпоративные выпуски, живые данные Мосбиржи, YTM, дюрация и сценарии по ключевой ставке, РСБУ из ФНС, кредитный скоринг, скринер, форумы с проверкой.
+
+[Презентация агента](https://ildargiv.github.io/ru-bonds-agent/) · [English](#english) · [Семейство агентов](#семейство-агентов) · [Где работает](#где-работает)
 
 Аналитик облигаций российского рынка: живые данные MOEX, РСБУ из ФНС, чтение свежей отчётности, кредитный скоринг, сценарии по ключевой ставке, скрининг, форумы с проверкой фактов.
 
@@ -65,6 +67,19 @@ python3 skills/finance/ru-bonds/scripts/moex_bond.py SU26238RMFS4
 python3 skills/finance/ru-bonds/scripts/screener.py --boards TQCB --min-yield 18 --max-dur-days 730 --min-volume 5000000
 python3 skills/finance/ru-bonds/scripts/gir_bo.py 7736050003
 ```
+## Семейство агентов
+Каждый агент живёт в своём репозитории и ставится отдельно. Если нужен ещё один, установите его рядом, одной командой (для Claude Code: `./install.sh claude`, для Hermes: `./install.sh`):
+
+| Агент | Для чего | Установка |
+|---|---|---|
+| [Инвесткомитет · ru-stocks-agent](https://github.com/ildargiv/ru-stocks-agent) | анализ акций Мосбиржи: список наблюдения, папка на акцию, инвесткомитет с адвокатом дьявола | `git clone https://github.com/ildargiv/ru-stocks-agent.git && cd ru-stocks-agent && ./install.sh claude` |
+| [Облигационер · ru-bonds-agent](https://github.com/ildargiv/ru-bonds-agent) | облигации РФ: ОФЗ и корпоративные выпуски, YTM, дюрация, кредитный скоринг, скринер | `git clone https://github.com/ildargiv/ru-bonds-agent.git && cd ru-bonds-agent && ./install.sh claude` |
+| [Семейный офис · ru-portfolio-agent](https://github.com/ildargiv/ru-portfolio-agent) | портфель акций: ежедневный брифинг после закрытия биржи, недельный обзор против IMOEX | `git clone https://github.com/ildargiv/ru-portfolio-agent.git && cd ru-portfolio-agent && ./install.sh claude` |
+| [FinEx · finex-agent](https://github.com/ildargiv/finex-agent) | пайщикам фондов FinEx в ликвидации: документы, новости, модель выплаты на пай | `git clone https://github.com/ildargiv/finex-agent.git && cd finex-agent && ./install.sh claude` |
+
+## English
+**Bond Analyst (ru-bonds-agent)** is an open-source AI agent skill for analysing Russian bonds (OFZ government bonds and corporate issues) on the Moscow Exchange (MOEX). It pulls live market data from MOEX ISS, issuer RAS financials from the Federal Tax Service (GIR BO), reads fresh IFRS reports and disclosures, computes YTM, duration, convexity and key-rate scenarios, scores credit quality 0–100 with red flags, screens the whole market, and checks forum rumours against primary sources. Built on the open Agent Skills standard (SKILL.md); works in Hermes Agent, Claude Code, Codex CLI, the Claude Agent SDK and claude.ai. Python 3.9+, standard library only. The agent answers in Russian. Analytics only, not investment advice.
+
 ## Лицензия
 MIT, см. [LICENSE](LICENSE).
 
