@@ -3,7 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Облигационер</title>
+<title>Облигационер — ИИ-агент для анализа облигаций РФ (MOEX, ОФЗ)</title>
+<meta name="description" content="Открытый ИИ-агент для анализа российских облигаций: живые данные Мосбиржи, YTM и дюрация, РСБУ из ФНС, кредитный скоринг, скринер, сценарии по ключевой ставке, форумы с проверкой. Hermes Agent, OpenClaw, Claude Code, Codex.">
+<meta name="keywords" content="облигации, российские облигации, ОФЗ, корпоративные облигации, анализ облигаций, Мосбиржа, MOEX, MOEX ISS, ИИ-агент, AI agent, кредитный анализ, ВДО, Hermes Agent, OpenClaw, Claude Code, Codex, Agent Skills">
+<meta name="author" content="ildargiv">
+<link rel="canonical" href="https://ildargiv.github.io/ru-bonds-agent/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:site_name" content="ru-bonds-agent">
+<meta property="og:title" content="Облигационер — ИИ-агент для анализа облигаций РФ (MOEX, ОФЗ)">
+<meta property="og:description" content="Открытый ИИ-агент для анализа российских облигаций: живые данные Мосбиржи, YTM и дюрация, РСБУ из ФНС, кредитный скоринг, скринер, сценарии по ключевой ставке, форумы с проверкой. Hermes Agent, OpenClaw, Claude Code, Codex.">
+<meta property="og:url" content="https://ildargiv.github.io/ru-bonds-agent/">
+<meta property="og:image" content="https://ildargiv.github.io/ru-bonds-agent/preview.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Облигационер — ИИ-агент для анализа облигаций РФ (MOEX, ОФЗ)">
+<meta name="twitter:description" content="Открытый ИИ-агент для анализа российских облигаций: живые данные Мосбиржи, YTM и дюрация, РСБУ из ФНС, кредитный скоринг, скринер, сценарии по ключевой ставке, форумы с проверкой. Hermes Agent, OpenClaw, Claude Code, Codex.">
+<meta name="twitter:image" content="https://ildargiv.github.io/ru-bonds-agent/preview.png">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "Облигационер (ru-bonds-agent)", "alternateName": "ru-bonds-agent", "description": "Открытый ИИ-агент для анализа российских облигаций: живые данные Мосбиржи, YTM и дюрация, РСБУ из ФНС, кредитный скоринг, скринер, сценарии по ключевой ставке, форумы с проверкой. Hermes Agent, OpenClaw, Claude Code, Codex.", "applicationCategory": "FinanceApplication", "operatingSystem": "Windows, macOS, Linux", "url": "https://ildargiv.github.io/ru-bonds-agent/", "codeRepository": "https://github.com/ildargiv/ru-bonds-agent", "license": "https://opensource.org/licenses/MIT", "inLanguage": "ru", "isAccessibleForFree": true, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "RUB"}, "author": {"@type": "Person", "name": "ildargiv", "url": "https://github.com/ildargiv"}, "keywords": "облигации, российские облигации, ОФЗ, корпоративные облигации, анализ облигаций, Мосбиржа, MOEX, MOEX ISS, ИИ-агент, AI agent, кредитный анализ, ВДО, Hermes Agent, OpenClaw, Claude Code, Codex, Agent Skills", "image": "https://ildargiv.github.io/ru-bonds-agent/preview.png"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
@@ -165,6 +181,11 @@ svg{display:block;width:100%;height:auto}
 .copy{font:600 .72rem var(--f-mono);border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;padding:5px 9px;cursor:pointer}
 .copy:hover{border-color:var(--accent);color:var(--accent)}
 
+.fams{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.fam{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px;text-decoration:none;color:var(--ink);font-size:.9rem}
+.fam:hover{border-color:var(--accent)} .fam[aria-current]{border-color:var(--accent);background:var(--accent-soft)}
+@media (max-width:820px){.fams{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:480px){.fams{grid-template-columns:minmax(0,1fr)}}
 footer{border-top:1px solid var(--line);padding-top:18px;font-size:.85rem;color:var(--muted);display:flex;flex-direction:column;gap:8px}
 
 @media (max-width:860px){
@@ -375,6 +396,14 @@ footer{border-top:1px solid var(--line);padding-top:18px;font-size:.85rem;color:
     <div class="cmd"><div class="cmd-top"><b>Codex CLI</b><button class="copy" id="c4" type="button">Копировать</button></div><code>./install.sh codex</code></div>
   </div>
   <p class="muted">Примеры запросов: «Разбери RU000A10DK98, держать до оферты?», «Подбери 10 облигаций с ежемесячным купоном от 18% до 2 лет без ВДО», «Прочитай свежую МСФО эмитента и скажи, что изменилось для держателей облигаций», «Что пишут на форумах про эмитента? Проверь, что правда».</p>
+</section>
+
+<section>
+  <div class="head">
+    <span class="eyebrow">Семейство</span>
+    <h2>Открытые ИИ-агенты для рынка РФ</h2>
+  </div>
+  <div class="fams"><a class="fam" href="https://github.com/ildargiv/ru-stocks-agent"><span class="eyebrow">ru-stocks-agent</span><b>Инвесткомитет</b><span class="muted">Акции РФ: список наблюдения, папка на каждую бумагу, инвесткомитет с адвокатом дьявола, DCF и дивмодель.</span></a><a class="fam" aria-current="page" href="https://github.com/ildargiv/ru-bonds-agent"><span class="eyebrow">вы здесь</span><b>Облигационер</b><span class="muted">Облигации РФ: карточка выпуска, YTM и дюрация, РСБУ из ФНС, кредитный скоринг, скринер, сценарии по ставке.</span></a><a class="fam" href="https://github.com/ildargiv/ru-portfolio-agent"><span class="eyebrow">ru-portfolio-agent</span><b>Семейный офис</b><span class="muted">Портфель акций РФ: ежедневный брифинг после закрытия биржи, недельный обзор против IMOEX, комитет по событиям.</span></a><a class="fam" href="https://github.com/ildargiv/finex-agent"><span class="eyebrow">finex-agent</span><b>FinEx</b><span class="muted">Пайщикам фондов FinEx в ликвидации: документы ликвидатора и суда, новости, форумы, модель выплаты на пай.</span></a></div>
 </section>
 
 <footer>
