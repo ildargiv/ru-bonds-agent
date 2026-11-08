@@ -68,14 +68,14 @@ python3 skills/finance/ru-bonds/scripts/screener.py --boards TQCB --min-yield 18
 python3 skills/finance/ru-bonds/scripts/gir_bo.py 7736050003
 ```
 ## Семейство агентов
-Четыре открытых агента для российского рынка с одинаковой установкой и общей структурой папок:
+Каждый агент живёт в своём репозитории и ставится отдельно. Если нужен ещё один, установите его рядом, одной командой (для Claude Code: `./install.sh claude`, для Hermes: `./install.sh`):
 
-| Агент | Для чего |
-|---|---|
-| [Инвесткомитет · ru-stocks-agent](https://github.com/ildargiv/ru-stocks-agent) | анализ акций Мосбиржи: список наблюдения, папка на акцию, инвесткомитет с адвокатом дьявола |
-| [Облигационер · ru-bonds-agent](https://github.com/ildargiv/ru-bonds-agent) | облигации РФ: ОФЗ и корпоративные выпуски, YTM, дюрация, кредитный скоринг, скринер |
-| [Семейный офис · ru-portfolio-agent](https://github.com/ildargiv/ru-portfolio-agent) | портфель акций: ежедневный брифинг после закрытия биржи, недельный обзор против IMOEX |
-| [FinEx · finex-agent](https://github.com/ildargiv/finex-agent) | пайщикам фондов FinEx в ликвидации: документы, новости, модель выплаты на пай |
+| Агент | Для чего | Установка |
+|---|---|---|
+| [Инвесткомитет · ru-stocks-agent](https://github.com/ildargiv/ru-stocks-agent) | анализ акций Мосбиржи: список наблюдения, папка на акцию, инвесткомитет с адвокатом дьявола | `git clone https://github.com/ildargiv/ru-stocks-agent.git && cd ru-stocks-agent && ./install.sh claude` |
+| [Облигационер · ru-bonds-agent](https://github.com/ildargiv/ru-bonds-agent) | облигации РФ: ОФЗ и корпоративные выпуски, YTM, дюрация, кредитный скоринг, скринер | `git clone https://github.com/ildargiv/ru-bonds-agent.git && cd ru-bonds-agent && ./install.sh claude` |
+| [Семейный офис · ru-portfolio-agent](https://github.com/ildargiv/ru-portfolio-agent) | портфель акций: ежедневный брифинг после закрытия биржи, недельный обзор против IMOEX | `git clone https://github.com/ildargiv/ru-portfolio-agent.git && cd ru-portfolio-agent && ./install.sh claude` |
+| [FinEx · finex-agent](https://github.com/ildargiv/finex-agent) | пайщикам фондов FinEx в ликвидации: документы, новости, модель выплаты на пай | `git clone https://github.com/ildargiv/finex-agent.git && cd finex-agent && ./install.sh claude` |
 
 ## English
 **Bond Analyst (ru-bonds-agent)** is an open-source AI agent skill for analysing Russian bonds (OFZ government bonds and corporate issues) on the Moscow Exchange (MOEX). It pulls live market data from MOEX ISS, issuer RAS financials from the Federal Tax Service (GIR BO), reads fresh IFRS reports and disclosures, computes YTM, duration, convexity and key-rate scenarios, scores credit quality 0–100 with red flags, screens the whole market, and checks forum rumours against primary sources. Built on the open Agent Skills standard (SKILL.md); works in Hermes Agent, Claude Code, Codex CLI, the Claude Agent SDK and claude.ai. Python 3.9+, standard library only. The agent answers in Russian. Analytics only, not investment advice.
